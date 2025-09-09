@@ -1,11 +1,21 @@
-from fastapi import FastAPI
-from bson.objectid import ObjectId
+from fastapi import FastAPI, Form, File, UploadFile, HTTPException, status
 from pydantic import BaseModel
+from bson.objectid import ObjectId
+from utils import replace_mongo_id
+from typing import Annotated
+import cloudinary
+import cloudinary.uploader
 from db import users_collection
 from db import jobs_collection
 from db import categories_collection
 from db import companies_collection
 from db import applications_collection
+
+cloudinary.config(
+    cloud_name="dx5tbpgob",
+    api_key="257948316413835",
+    api_secret="_U8C_w49y7IpJY4v0dpp9Uhbq0k",
+)
 
 app = FastAPI()
 
@@ -55,3 +65,61 @@ class Categories(BaseModel):
 def read_root():
     return {"message": "This is the homepage"}
 
+# End Points
+@app.post("/jobs")
+def post_jobs(
+    title: Annotated[str, Form()],
+    description: Annotated[str, Form()],
+    category: Annotated[str, Form()],
+    employment_type: Annotated[str, Form()],
+    location: Annotated[str, Form()],
+    salary_min: Annotated[float, Form()],
+    salary_max: Annotated[float, Form()],
+    currency: Annotated[str, Form()],
+    posted_by: Annotated[str, Form()],
+    date_posted: Annotated[str, Form()],
+    application_deadline: Annotated[str, Form()],
+    status: Annotated[str, Form()],
+    flyer: Annotated[UploadFile, File()]
+    ):
+    """Inserts a job opportunity"""
+    upload_result = cloudinary.uploader.upload(flyer.file)
+    jobs_collection.insert_one(
+        {
+            "title": title,
+            "description": description,
+            "category": category,
+            "employment_type": employment_type,
+            "location": location,
+            "salary_min": salary_min,
+            "salary_max": salary_max,
+            "currency": currency,
+            "posted_by": posted_by,
+            "date_posted": date_posted,
+            "application_deadline": application_deadline,
+            "status": status,
+            "flyer": upload_result["secure_url"]
+        }
+    )
+    return {"message": "Job listing added successfully"}
+
+@app.get("/jobs")
+def get_jobs(title="", description="", limit=10, skip=0):
+    jobs = jobs_collection.find(
+        filter={
+            "$or": [
+                {"title": {"$regex": title, "$options": "i"}},
+                {"description": {"$regex": description, "$options": "i"}},
+            ]
+        },
+        limit=int(limit),
+        skip=int(skip),
+    ).to_list()
+    return {"data": list(map(replace_mongo_id, jobs))}
+
+@app.get("/jobs/{job_id}")
+def get_jobs_by_id(job_id):
+    if not ObjectId.is_valid(job_id):
+        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!")
+    job = jobs_collection.find_one({"_id": ObjectId(job_id)})
+    return {"data": replace_mongo_id(job)}
