@@ -79,7 +79,7 @@ def post_jobs(
     posted_by: Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
     application_deadline: Annotated[str, Form()],
-    status: Annotated[str, Form()],
+    job_status: Annotated[str, Form()],
     flyer: Annotated[UploadFile, File()]
     ):
     """Inserts a job opportunity"""
@@ -97,7 +97,7 @@ def post_jobs(
             "posted_by": posted_by,
             "date_posted": date_posted,
             "application_deadline": application_deadline,
-            "status": status,
+            "job_status": job_status,
             "flyer": upload_result["secure_url"]
         }
     )
@@ -123,3 +123,25 @@ def get_jobs_by_id(job_id):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!")
     job = jobs_collection.find_one({"_id": ObjectId(job_id)})
     return {"data": replace_mongo_id(job)}
+
+@app.put("/jobs/{job_id}")
+def replace_job(
+    job_id,
+    title: Annotated[str, Form()],
+    description: Annotated[str, Form()],
+    category: Annotated[str, Form()],
+    employment_type: Annotated[str, Form()],
+    location: Annotated[str, Form()],
+    salary_min: Annotated[float, Form()],
+    salary_max: Annotated[float, Form()],
+    currency: Annotated[str, Form()],
+    posted_by: Annotated[str, Form()],
+    date_posted: Annotated[str, Form()],
+    application_deadline: Annotated[str, Form()],
+    job_status: Annotated[str, Form()],
+    flyer: Annotated[UploadFile, File()]
+):
+    if not ObjectId.is_valid(job_id):
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid Mongo Received!"
+        )
