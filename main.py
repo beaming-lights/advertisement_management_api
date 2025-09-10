@@ -10,11 +10,15 @@ from db import jobs_collection
 from db import categories_collection
 from db import companies_collection
 from db import applications_collection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 cloudinary.config(
-    cloud_name="dx5tbpgob",
-    api_key="257948316413835",
-    api_secret="_U8C_w49y7IpJY4v0dpp9Uhbq0k",
+    cloud_name=os.getenv("CLOUD_NAME"),
+    api_key=os.getenv("API_KEY"),
+    api_secret=os.getenv("API_SECRET"),
 )
 
 app = FastAPI()
