@@ -10,11 +10,15 @@ from db import jobs_collection
 from db import categories_collection
 from db import companies_collection
 from db import applications_collection
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 cloudinary.config(
-    cloud_name="dx5tbpgob",
-    api_key="257948316413835",
-    api_secret="_U8C_w49y7IpJY4v0dpp9Uhbq0k",
+    cloud_name=os.getenv("CLOUD_NAME"),
+    api_key=os.getenv("API_KEY"),
+    api_secret=os.getenv("API_SECRET"),
 )
 
 app = FastAPI()
@@ -87,8 +91,8 @@ def post_jobs(
     date_posted: Annotated[str, Form()],
     application_deadline: Annotated[str, Form()],
     job_status: Annotated[str, Form()],
-    flyer: Annotated[UploadFile, File()],
-):
+    flyer: Annotated[UploadFile, File()]
+    ):
     """Inserts a job opportunity"""
     upload_result = cloudinary.uploader.upload(flyer.file)
     jobs_collection.insert_one(
@@ -105,7 +109,7 @@ def post_jobs(
             "date_posted": date_posted,
             "application_deadline": application_deadline,
             "job_status": job_status,
-            "flyer": upload_result["secure_url"],
+            "flyer": upload_result["secure_url"]
         }
     )
     return {"message": "Job listing added successfully"}
