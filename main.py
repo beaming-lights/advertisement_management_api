@@ -79,37 +79,37 @@ def read_root():
 # End Points
 @app.post("/jobs")
 def post_jobs(
-    title: Annotated[str, Form()],
-    description: Annotated[str, Form()],
+    job_title: Annotated[str, Form()],
+    company: Annotated[str, Form],
+    job_description: Annotated[str, Form()],
     category: Annotated[str, Form()],
-    employment_type: Annotated[str, Form()],
+    job_type: Annotated[str, Form()],
     location: Annotated[str, Form()],
-    salary_min: Annotated[float, Form()],
-    salary_max: Annotated[float, Form()],
-    currency: Annotated[str, Form()],
-    posted_by: Annotated[str, Form()],
+    min_salary: Annotated[float, Form()],
+    max_salary: Annotated[float, Form()],
+    benefits: Annotated[str, Form()],
+    requirements:Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
-    application_deadline: Annotated[str, Form()],
-    job_status: Annotated[str, Form()],
-    flyer: Annotated[UploadFile, File()]
+    contact_email: Annotated[str, Form()],
+    # flyer: Annotated[UploadFile, File()]
     ):
     """Inserts a job opportunity"""
-    upload_result = cloudinary.uploader.upload(flyer.file)
+    # upload_result = cloudinary.uploader.upload(flyer.file)
     jobs_collection.insert_one(
         {
-            "title": title,
-            "description": description,
+            "job_title": job_title,
+            "company": company,
+            "job_description": job_description,
             "category": category,
-            "employment_type": employment_type,
+            "job_type": job_type,
             "location": location,
-            "salary_min": salary_min,
-            "salary_max": salary_max,
-            "currency": currency,
-            "posted_by": posted_by,
+            "min_salary": min_salary,
+            "max_salary": max_salary,
+            "benefits": benefits,
+            "requirements": requirements,
+            "contact_email": contact_email,
             "date_posted": date_posted,
-            "application_deadline": application_deadline,
-            "job_status": job_status,
-            "flyer": upload_result["secure_url"]
+            # "flyer": upload_result["secure_url"]
         }
     )
     return {"message": "Job listing added successfully"}
