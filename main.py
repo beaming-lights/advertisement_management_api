@@ -80,6 +80,7 @@ def read_root():
 @app.post("/jobs")
 def post_jobs(
     job_title: Annotated[str, Form()],
+    # added a bracket here
     company: Annotated[str, Form()],
     job_description: Annotated[str, Form()],
     category: Annotated[str, Form()],
