@@ -92,10 +92,11 @@ def post_jobs(
     requirements:Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
     contact_email: Annotated[str, Form()],
-    # flyer: Annotated[UploadFile, File()]
+    image: Annotated[str, Form()],
+    flyer: Annotated[UploadFile, File()],
     ):
     """Inserts a job opportunity"""
-    # upload_result = cloudinary.uploader.upload(flyer.file)
+    upload_result = cloudinary.uploader.upload(flyer.file)
     jobs_collection.insert_one(
         {
             "job_title": job_title,
@@ -107,10 +108,11 @@ def post_jobs(
             "min_salary": min_salary,
             "max_salary": max_salary,
             "benefits": benefits,
+            "image": image,
             "requirements": requirements,
             "contact_email": contact_email,
             "date_posted": date_posted,
-            # "flyer": upload_result["secure_url"]
+            "flyer": upload_result["secure_url"]
         }
     )
     return {"message": "Job listing added successfully"}
