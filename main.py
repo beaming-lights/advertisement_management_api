@@ -80,7 +80,7 @@ def read_root():
 @app.post("/jobs")
 def post_jobs(
     job_title: Annotated[str, Form()],
-    company: Annotated[str, Form],
+    company: Annotated[str, Form()],
     job_description: Annotated[str, Form()],
     category: Annotated[str, Form()],
     job_type: Annotated[str, Form()],
