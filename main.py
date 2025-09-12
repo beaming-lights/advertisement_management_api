@@ -80,7 +80,6 @@ def read_root():
 @app.post("/jobs")
 def post_jobs(
     job_title: Annotated[str, Form()],
-    # added a bracket here
     company: Annotated[str, Form()],
     job_description: Annotated[str, Form()],
     category: Annotated[str, Form()],
@@ -89,11 +88,11 @@ def post_jobs(
     min_salary: Annotated[float, Form()],
     max_salary: Annotated[float, Form()],
     benefits: Annotated[str, Form()],
-    requirements:Annotated[str, Form()],
+    requirements: Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
     contact_email: Annotated[str, Form()],
     flyer: Annotated[UploadFile, File()],
-    ):
+):
     """Inserts a job opportunity"""
     upload_result = cloudinary.uploader.upload(flyer.file)
     jobs_collection.insert_one(
@@ -110,24 +109,38 @@ def post_jobs(
             "requirements": requirements,
             "contact_email": contact_email,
             "date_posted": date_posted,
-            "flyer": upload_result["secure_url"]
+            "flyer": upload_result["secure_url"],
         }
     )
     return {"message": "Job listing added successfully"}
 
+
 @app.get("/jobs")
-def get_jobs(title="", description="", limit=10, skip=0):
-    jobs = jobs_collection.find(
+def get_jobs(title="", description=""):
+    all_jobs = jobs_collection.find(
         filter={
             "$or": [
                 {"title": {"$regex": title, "$options": "i"}},
                 {"description": {"$regex": description, "$options": "i"}},
             ]
-        },
-        limit=int(limit),
-        skip=int(skip),
+        }
     ).to_list()
-    return {"data": list(map(replace_mongo_id, jobs))}
+    return {"data": list(map(replace_mongo_id, all_jobs))}
+
+
+# def get_jobs(title="", description="", limit=10, skip=0):
+#     jobs = jobs_collection.find(
+#         filter={
+#             "$or": [
+#                 {"title": {"$regex": title, "$options": "i"}},
+#                 {"description": {"$regex": description, "$options": "i"}},
+#             ]
+#         },
+#         limit=int(limit),
+#         skip=int(skip),
+#     ).to_list()
+#     return {"data": list(map(replace_mongo_id, jobs))}
+
 
 @app.get("/jobs/{job_id}")
 def get_jobs_by_id(job_id):
@@ -137,6 +150,7 @@ def get_jobs_by_id(job_id):
         )
     job = jobs_collection.find_one({"_id": ObjectId(job_id)})
     return {"data": replace_mongo_id(job)}
+
 
 @app.put("/jobs/{job_id}")
 def replace_jobs(
@@ -150,20 +164,21 @@ def replace_jobs(
     min_salary: Annotated[float, Form()],
     max_salary: Annotated[float, Form()],
     benefits: Annotated[str, Form()],
-    requirements:Annotated[str, Form()],
+    requirements: Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
     contact_email: Annotated[str, Form()],
     flyer: Annotated[UploadFile, File()],
 ):
     if not ObjectId.is_valid(job_id):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!")
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
+        )
     upload_result = cloudinary.uploader.upload(flyer.file)
     print(upload_result)
 
     jobs_collection.replace_one(
         filter={"_id": ObjectId(job_id)},
-        replacement=
-        {
+        replacement={
             "job_title": job_title,
             "company": company,
             "job_description": job_description,
@@ -176,19 +191,23 @@ def replace_jobs(
             "requirements": requirements,
             "contact_email": contact_email,
             "date_posted": date_posted,
-            "flyer": upload_result["secure_url"]
-        }
+            "flyer": upload_result["secure_url"],
+        },
     )
     return {"message": "Event replaced successfully"}
+
 
 @app.delete("/jobs/{job_id}")
 def delete_job(job_id):
     if not ObjectId.is_valid(job_id):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
         )
     # Delete event from database
     delete_result = jobs_collection.delete_one(filter={"_id": ObjectId(job_id)})
     if not delete_result.deleted_count:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Sorry, no event found to delte!")
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, "Sorry, no event found to delte!"
+        )
     # Return response
-    return{"message": "Event deleted succesfully."}
+    return {"message": "Event deleted succesfully."}
