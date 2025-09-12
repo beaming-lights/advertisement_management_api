@@ -92,7 +92,6 @@ def post_jobs(
     requirements:Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
     contact_email: Annotated[str, Form()],
-    image: Annotated[str, Form()],
     flyer: Annotated[UploadFile, File()],
     ):
     """Inserts a job opportunity"""
@@ -108,7 +107,6 @@ def post_jobs(
             "min_salary": min_salary,
             "max_salary": max_salary,
             "benefits": benefits,
-            "image": image,
             "requirements": requirements,
             "contact_email": contact_email,
             "date_posted": date_posted,
@@ -143,19 +141,19 @@ def get_jobs_by_id(job_id):
 @app.put("/jobs/{job_id}")
 def replace_jobs(
     job_id,
-    title: Annotated[str, Form()],
-    description: Annotated[str, Form()],
+    job_title: Annotated[str, Form()],
+    company: Annotated[str, Form()],
+    job_description: Annotated[str, Form()],
     category: Annotated[str, Form()],
-    employment_type: Annotated[str, Form()],
+    job_type: Annotated[str, Form()],
     location: Annotated[str, Form()],
-    salary_min: Annotated[float, Form()],
-    salary_max: Annotated[float, Form()],
-    currency: Annotated[str, Form()],
-    posted_by: Annotated[str, Form()],
+    min_salary: Annotated[float, Form()],
+    max_salary: Annotated[float, Form()],
+    benefits: Annotated[str, Form()],
+    requirements:Annotated[str, Form()],
     date_posted: Annotated[str, Form()],
-    application_deadline: Annotated[str, Form()],
-    job_status: Annotated[str, Form()],
-    flyer: Annotated[UploadFile, File()]
+    contact_email: Annotated[str, Form()],
+    flyer: Annotated[UploadFile, File()],
 ):
     if not ObjectId.is_valid(job_id):
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!")
@@ -165,19 +163,20 @@ def replace_jobs(
     jobs_collection.replace_one(
         filter={"_id": ObjectId(job_id)},
         replacement=
-        {"title": title,
-        "description": description,
-        "category": category,
-        "employment_type": employment_type,
-        "location": location,
-        "salary_min": salary_min,
-        "salary_max": salary_max,
-        "currency": currency,
-        "posted_by": posted_by,
-        "date_posted": date_posted,
-        "application_deadline": application_deadline,
-        "job_status": job_status,
-        "flyer": upload_result["secure_url"]
+        {
+            "job_title": job_title,
+            "company": company,
+            "job_description": job_description,
+            "category": category,
+            "job_type": job_type,
+            "location": location,
+            "min_salary": min_salary,
+            "max_salary": max_salary,
+            "benefits": benefits,
+            "requirements": requirements,
+            "contact_email": contact_email,
+            "date_posted": date_posted,
+            "flyer": upload_result["secure_url"]
         }
     )
     return {"message": "Event replaced successfully"}
