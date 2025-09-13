@@ -116,30 +116,9 @@ def post_jobs(
 
 
 @app.get("/jobs")
-def get_jobs(title="", description=""):
-    all_jobs = jobs_collection.find(
-        filter={
-            "$or": [
-                {"title": {"$regex": title, "$options": "i"}},
-                {"description": {"$regex": description, "$options": "i"}},
-            ]
-        }
-    ).to_list()
+def get_jobs():
+    all_jobs = jobs_collection.find().to_list()
     return {"data": list(map(replace_mongo_id, all_jobs))}
-
-
-# def get_jobs(title="", description="", limit=10, skip=0):
-#     jobs = jobs_collection.find(
-#         filter={
-#             "$or": [
-#                 {"title": {"$regex": title, "$options": "i"}},
-#                 {"description": {"$regex": description, "$options": "i"}},
-#             ]
-#         },
-#         limit=int(limit),
-#         skip=int(skip),
-#     ).to_list()
-#     return {"data": list(map(replace_mongo_id, jobs))}
 
 
 @app.get("/jobs/{job_id}")
