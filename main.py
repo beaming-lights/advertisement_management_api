@@ -1,192 +1,28 @@
-from fastapi import FastAPI, Form, File, UploadFile, HTTPException, status
-from pydantic import BaseModel
-from bson.objectid import ObjectId
-from utils import replace_mongo_id
-from typing import Annotated
+from fastapi import FastAPI
 import cloudinary
-import cloudinary.uploader
-from db import users_collection
-from db import jobs_collection
-from db import categories_collection
-from db import companies_collection
-from db import applications_collection
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+from routes.users import users_router
+from routes.jobs import job_router
+
+# import cloudinary.api
 
 load_dotenv()
 
+# Configure Cloudinary
+
 cloudinary.config(
-    cloud_name=os.getenv("CLOUD_NAME"),
-    api_key=os.getenv("API_KEY"),
-    api_secret=os.getenv("API_SECRET"),
+    cloud_name=os.getenv("cloud_name"),
+    api_key=os.getenv("api_key"),
+    api_secret=os.getenv("api_secret"),
 )
 
-app = FastAPI()
+app = FastAPI(title="Welcome to Job Hub")  # These two lines of code creates a server for you.
 
 
-class User(BaseModel):
-    username: str
-    email: str
-    password: str
-    role: str
-    date_joined: str
+@app.get("/", tags=['Welcome to the HomePage'])
+def get_home():
+    return {"message": "You are on the homepage"}
 
-
-class Companies(BaseModel):
-    name: str
-    website: str
-    logo_url: str
-    description: str
-    location: str
-    owner_id: str
-
-
-class Jobs(BaseModel):
-    title: str
-    description: str
-    category: str
-    employment_type: str
-    location: str
-    salary_min: int
-    salary_max: int
-    currency: str
-    company_id: str
-    posted_by: str
-    date_posted: str
-    application_deadline: str
-    status: str
-
-
-class Applications(BaseModel):
-    job_id: str
-    applicant_id: str
-    cover_letter: str
-    resume_url: str
-    date_applied: str
-    status: str
-
-
-class Categories(BaseModel):
-    name: str
-    description: str
-
-
-@app.get("/")
-def read_root():
-    return {"message": "This is the homepage"}
-
-
-# End Points
-@app.post("/jobs")
-def post_jobs(
-    job_title: Annotated[str, Form()],
-    company: Annotated[str, Form()],
-    job_description: Annotated[str, Form()],
-    category: Annotated[str, Form()],
-    job_type: Annotated[str, Form()],
-    location: Annotated[str, Form()],
-    min_salary: Annotated[float, Form()],
-    max_salary: Annotated[float, Form()],
-    benefits: Annotated[str, Form()],
-    requirements: Annotated[str, Form()],
-    date_posted: Annotated[str, Form()],
-    contact_email: Annotated[str, Form()],
-    flyer: Annotated[UploadFile, File()],
-):
-    """Inserts a job opportunity"""
-    upload_result = cloudinary.uploader.upload(flyer.file)
-    jobs_collection.insert_one(
-        {
-            "job_title": job_title,
-            "company": company,
-            "job_description": job_description,
-            "category": category,
-            "job_type": job_type,
-            "location": location,
-            "min_salary": min_salary,
-            "max_salary": max_salary,
-            "benefits": benefits,
-            "requirements": requirements,
-            "contact_email": contact_email,
-            "date_posted": date_posted,
-            "flyer": upload_result["secure_url"],
-        }
-    )
-    return {"message": "Job listing added successfully"}
-
-
-@app.get("/jobs")
-def get_jobs():
-    all_jobs = jobs_collection.find().to_list()
-    return {"data": list(map(replace_mongo_id, all_jobs))}
-
-
-@app.get("/jobs/{job_id}")
-def get_jobs_by_id(job_id):
-    if not ObjectId.is_valid(job_id):
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
-        )
-    job = jobs_collection.find_one({"_id": ObjectId(job_id)})
-    return {"data": replace_mongo_id(job)}
-
-
-@app.put("/jobs/{job_id}")
-def replace_jobs(
-    job_id,
-    job_title: Annotated[str, Form()],
-    company: Annotated[str, Form()],
-    job_description: Annotated[str, Form()],
-    category: Annotated[str, Form()],
-    job_type: Annotated[str, Form()],
-    location: Annotated[str, Form()],
-    min_salary: Annotated[float, Form()],
-    max_salary: Annotated[float, Form()],
-    benefits: Annotated[str, Form()],
-    requirements: Annotated[str, Form()],
-    date_posted: Annotated[str, Form()],
-    contact_email: Annotated[str, Form()],
-    flyer: Annotated[UploadFile, File()],
-):
-    if not ObjectId.is_valid(job_id):
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
-        )
-    upload_result = cloudinary.uploader.upload(flyer.file)
-    print(upload_result)
-
-    jobs_collection.replace_one(
-        filter={"_id": ObjectId(job_id)},
-        replacement={
-            "job_title": job_title,
-            "company": company,
-            "job_description": job_description,
-            "category": category,
-            "job_type": job_type,
-            "location": location,
-            "min_salary": min_salary,
-            "max_salary": max_salary,
-            "benefits": benefits,
-            "requirements": requirements,
-            "contact_email": contact_email,
-            "date_posted": date_posted,
-            "flyer": upload_result["secure_url"],
-        },
-    )
-    return {"message": "Event replaced successfully"}
-
-
-@app.delete("/jobs/{job_id}")
-def delete_job(job_id):
-    if not ObjectId.is_valid(job_id):
-        raise HTTPException(
-            status.HTTP_422_UNPROCESSABLE_ENTITY, "Invalid mongo id received!"
-        )
-    # Delete event from database
-    delete_result = jobs_collection.delete_one(filter={"_id": ObjectId(job_id)})
-    if not delete_result.deleted_count:
-        raise HTTPException(
-            status.HTTP_404_NOT_FOUND, "Sorry, no event found to delte!"
-        )
-    # Return response
-    return {"message": "Event deleted succesfully."}
+app.include_router(users_router)
+app.include_router(job_router)
