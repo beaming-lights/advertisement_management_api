@@ -123,7 +123,7 @@ def replace_jobs(
             "replaced by": user_id,
         },
     )
-    return {"message": "Event replaced successfully"}
+    return {"message": "Job replaced successfully"}
 
 
 @job_router.delete("/jobs/{job_id}", tags=["Delete Job by Id"])
