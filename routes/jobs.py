@@ -6,7 +6,7 @@ import cloudinary
 import cloudinary.uploader
 from db import jobs_collection
 from dependencies.authn import is_authenticated
-from dependencies.authz import has_role, has_roles
+from dependencies.authz import has_roles
 
 job_router = APIRouter()
 
