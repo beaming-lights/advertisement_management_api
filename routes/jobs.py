@@ -6,12 +6,13 @@ import cloudinary
 import cloudinary.uploader
 from db import jobs_collection
 from dependencies.authn import is_authenticated
+from dependencies.authz import has_role
 
 job_router = APIRouter()
 
 
 # End Points
-@job_router.post("/jobs", tags=["Add a Job"])
+@job_router.post("/jobs", tags=["Add a Job"], dependencies=[Depends(has_role("employer"))])
 def post_jobs(
     job_title: Annotated[str, Form()],
     company: Annotated[str, Form()],
@@ -79,7 +80,7 @@ def get_jobs_by_id(job_id):
     return {"data": replace_mongo_id(job)}
 
 
-@job_router.put("/jobs/{job_id}", tags=["Edit Job by Id"])
+@job_router.put("/jobs/{job_id}", tags=["Edit Job by Id"], dependencies=[Depends(has_role("employer"))])
 def replace_jobs(
     job_id,
     job_title: Annotated[str, Form()],
@@ -126,7 +127,7 @@ def replace_jobs(
     return {"message": "Job replaced successfully"}
 
 
-@job_router.delete("/jobs/{job_id}", tags=["Delete Job by Id"])
+@job_router.delete("/jobs/{job_id}", tags=["Delete Job by Id"], dependencies=[Depends(has_role("employer"))])
 def delete_job(job_id, user_id: Annotated[str, Depends(is_authenticated)]):
     if not ObjectId.is_valid(job_id):
         raise HTTPException(
