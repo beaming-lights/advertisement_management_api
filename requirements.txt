@@ -3,4 +3,6 @@ pymongo
 python-dotenv
 cloudinary
 bcrypt
-PyJWT
+pyjwt
+google-generativeai
+google-genai

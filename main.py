@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from routes.users import users_router
 from routes.jobs import job_router
+from routes.genai import genai_router
 
 # import cloudinary.api
 
@@ -26,3 +27,4 @@ def get_home():
 
 app.include_router(users_router)
 app.include_router(job_router)
+app.include_router(genai_router)
