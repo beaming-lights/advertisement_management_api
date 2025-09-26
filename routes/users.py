@@ -62,4 +62,4 @@ def login_user(
         os.getenv("JWT_SECRET_KEY"),
         "HS256",
     )
-    return {"message": "User logged in successffully", "access_token": encoded_jwt}
+    return {"message": "User logged in successffully", "access_token": encoded_jwt, "role": user_in_db["role"]}
